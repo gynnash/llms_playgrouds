@@ -74,7 +74,7 @@ class Block(nn.Module):
 
 @dataclass
 class GPTConfig():
-    block_size: int = 1025
+    block_size: int = 1024
     vocab_size: int = 50257
     n_layer: int = 12
     n_head: int = 12
@@ -97,6 +97,9 @@ class GPT(nn.Module):
 
         # 参数共享
         self.transformer.wte.weight = self.lm_head.weight
+
+        # 参数初始化
+        self.apply(self._init_weights)
 
     def _init_weights(self, module):
         if isinstance(module, nn.Linear):
@@ -273,7 +276,8 @@ torch.manual_seed(1337)
 if torch.cuda.is_available():
     torch.cuda.manual_seed(1337)
 
-total_batch_size = 524288  # GPT2 论文中 125M 版本使用的是 2**19 ～ 0.5M
+#total_batch_size = 524288  # GPT2 论文中 125M 版本使用的是 2**19 ～ 0.5M
+total_batch_size = 65536  # GPT2 论文中 125M 版本使用的是 2**19 ～ 0.5M
 B, T = 4, 1024
 assert total_batch_size % (B * T * ddp_world_size) == 0
 grad_accum_steps = total_batch_size // (B * T * ddp_world_size)
